@@ -84,8 +84,8 @@ class _MessagePrivateWidgetState extends State<MessagePrivateWidget> {
             ),
           ),
           title: Text(
-            widget.conversation!.nimUser?.nick ??
-                widget.voiceUser!.nickname ??
+            widget.conversation?.nimUser?.nick ??
+                widget.voiceUser?.nickname ??
                 'Jasyka',
             style: FlutterFlowTheme.of(context).headlineMedium.override(
                   fontFamily: 'Poppins',
@@ -553,8 +553,8 @@ class _MessagePrivateWidgetState extends State<MessagePrivateWidget> {
                 shape: BoxShape.circle,
               ),
               child: Image.network(
-                widget.conversation!.nimUser?.avatar ??
-                    widget.voiceUser!.icon ??
+                widget.conversation?.nimUser?.avatar ??
+                    widget.voiceUser?.icon ??
                     'https://picsum.photos/seed/825/600',
                 fit: BoxFit.cover,
               ),
@@ -601,8 +601,8 @@ class _MessagePrivateWidgetState extends State<MessagePrivateWidget> {
               shape: BoxShape.circle,
             ),
             child: Image.network(
-              widget.conversation!.nimUser?.avatar ??
-                  widget.voiceUser!.icon ??
+              widget.conversation?.nimUser?.avatar ??
+                  widget.voiceUser?.icon ??
                   'https://picsum.photos/seed/825/600',
               fit: BoxFit.cover,
             ),

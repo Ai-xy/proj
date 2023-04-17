@@ -1895,7 +1895,7 @@ class _RoomWidgetState extends State<RoomWidget> {
                                           builder: (context) =>
                                               MessagePrivateWidget(
                                                   voiceUser: user)));
-                                  context.push('MessagePrivate');
+                                  //context.push('MessagePrivate');
                                 },
                                 child: Container(
                                   width: 140.0,

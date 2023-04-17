@@ -113,8 +113,9 @@ class YxService {
       } else {
         Fluttertoast.showToast(msg: value.errorDetails!);
         print('发送消息失败');
-        return Future.value(value.data);;
-      }});
+        return Future.value(value.data);
+      }
+    });
   }
 
   /// 获取最近会话

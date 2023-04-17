@@ -59,7 +59,9 @@ class MessagePrivateModel extends FlutterFlowModel {
     user = SpUtil.getObj<User>(
         Config.userInfo, (v) => User.fromJson(v as Map<String, dynamic>));
 
-    createSession();
+    if (voiceUser != null) {
+      createSession();
+    }
     //getHistoryData();
 
     /// 监听消息事件
@@ -111,10 +113,16 @@ class MessagePrivateModel extends FlutterFlowModel {
 
   // 创建会话
   void createSession() {
-    NimCore.instance.messageService.createSession(
-        sessionId: voiceUser!.userId.toString(),
-        sessionType: NIMSessionType.p2p,
-        time: DateTime.now().millisecond);
+    NimCore.instance.messageService
+        .createSession(
+            sessionId: voiceUser!.yxAccid.toString(),
+            sessionType: NIMSessionType.p2p,
+            time: DateTime.now().millisecond)
+        .then((value) {
+      if (value.isSuccess) {
+        Fluttertoast.showToast(msg: '创建会话成功');
+      }
+    });
   }
 
   // 获取历史消息
@@ -141,7 +149,7 @@ class MessagePrivateModel extends FlutterFlowModel {
     }
     if (voiceUser != null) {
       return NimCore.instance.messageService
-          .queryLastMessage(voiceUser!.userId.toString(), NIMSessionType.p2p)
+          .queryLastMessage(voiceUser!.yxAccid.toString(), NIMSessionType.p2p)
           .then((value) {
         if (value.data is! NIMMessage) return;
         final NIMMessage anchor = value.data as NIMMessage;
@@ -170,18 +178,22 @@ class MessagePrivateModel extends FlutterFlowModel {
         userid = conversation!.nimUser!.userId!;
       }
       if (voiceUser != null) {
-        userid = voiceUser!.userId.toString();
+        userid = voiceUser!.yxAccid.toString();
       }
+      print('userid是$userid');
       final textMessage = await MessageBuilder.createTextMessage(
         sessionId: userid!,
         sessionType: NIMSessionType.p2p,
         text: textController.text,
-      );
-      YxService().sendTextMessage(textMessage.data!).then((value) {
-        textController.text = '';
-        print("发送消息返回的数据：${value.toMap()}");
-        _addMessage(value);
+      ).then((value) {
+        print('创建消息返回: $value');
+        YxService().sendTextMessage(value.data!).then((value) {
+          textController.text = '';
+          print("发送消息返回的数据：${value.toMap()}");
+          _addMessage(value);
+        });
       });
+
       //Navigator.pop(context);
     }
   }
@@ -189,10 +201,9 @@ class MessagePrivateModel extends FlutterFlowModel {
   String? getUserId() {
     if (conversation != null) {
       return conversation!.nimUser!.userId!;
-    }
-    else if (voiceUser != null) {
-      return voiceUser!.userId.toString();
-    }else{
+    } else if (voiceUser != null) {
+      return voiceUser!.yxAccid.toString();
+    } else {
       return '';
     }
   }
@@ -233,8 +244,7 @@ class MessagePrivateModel extends FlutterFlowModel {
         await ImagePicker().pickVideo(source: ImageSource.gallery);
     if (_video != null) {
       await createVideoMessage(
-              file: File(_video.path),
-              targetAccount: getUserId()!)
+              file: File(_video.path), targetAccount: getUserId()!)
           .then((value) {
         return value.isSuccess
             ? Future(() {
@@ -358,7 +368,7 @@ class MessagePrivateModel extends FlutterFlowModel {
     }
     if (voiceUser != null) {
       final sessionInfo = NIMSessionInfo(
-          sessionId: voiceUser!.userId.toString(),
+          sessionId: voiceUser!.yxAccid.toString(),
           sessionType: NIMSessionType.p2p);
       updateSessionReadStatus(sessionInfo);
     }

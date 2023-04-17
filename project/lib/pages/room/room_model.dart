@@ -228,7 +228,8 @@ class RoomModel extends FlutterFlowModel {
               mikeIndex: mikeIndex,
               userId: mItem.remoteExtension!['data'][i]['userId'],
               icon: mItem.remoteExtension!['data'][i]['icon'],
-              nickname: mItem.remoteExtension!['data'][i]['nickname']);
+              nickname: mItem.remoteExtension!['data'][i]['nickname'],
+              yxAccid: mItem.remoteExtension!['data'][i]['yxAccid']);
           isMicBeingOccupied[mikeIndex! - 1] = true;
           onUpdate();
           print('麦位状态$mikeIndex');
