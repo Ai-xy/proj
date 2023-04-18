@@ -1,3 +1,6 @@
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:project/pages/room/room_model.dart';
+
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import 'package:flutter/material.dart';
@@ -8,7 +11,8 @@ import 'functions_model.dart';
 export 'functions_model.dart';
 
 class FunctionsWidget extends StatefulWidget {
-  const FunctionsWidget({Key? key}) : super(key: key);
+  final RoomModel? mModel;
+  const FunctionsWidget({Key? key, this.mModel}) : super(key: key);
 
   @override
   _FunctionsWidgetState createState() => _FunctionsWidgetState();
@@ -94,14 +98,20 @@ class _FunctionsWidgetState extends State<FunctionsWidget> {
                   ),
                   Padding(
                     padding: EdgeInsetsDirectional.fromSTEB(6.0, 0.0, 6.0, 0.0),
-                    child: Text(
-                      'Clear Screen',
-                      textAlign: TextAlign.center,
-                      style: FlutterFlowTheme.of(context).bodyMedium.override(
-                            fontFamily: 'Poppins',
-                            color: FlutterFlowTheme.of(context).white,
-                            fontSize: 14.0,
-                          ),
+                    child: GestureDetector(
+                      onTap: (){
+                        Fluttertoast.showToast(msg: '点击');
+                        widget.mModel!.clearRoomMessage();
+                      },
+                      child: Text(
+                        'Clear Screen',
+                        textAlign: TextAlign.center,
+                        style: FlutterFlowTheme.of(context).bodyMedium.override(
+                              fontFamily: 'Poppins',
+                              color: FlutterFlowTheme.of(context).white,
+                              fontSize: 14.0,
+                            ),
+                      ),
                     ),
                   ),
                 ],

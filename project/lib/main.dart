@@ -109,6 +109,7 @@ class _MyAppState extends State<MyApp> {
 
     if (statuses[Permission.location]!.isGranted) {
       // 访问位置权限已授予
+
     }
 
     if (statuses[Permission.camera]!.isGranted) {
@@ -121,6 +122,9 @@ class _MyAppState extends State<MyApp> {
 
     if (statuses[Permission.storage]!.isGranted) {
       // 存储权限已授予
+    }
+    if(statuses[Permission.camera]!.isDenied){
+      // 拒绝权限
     }
   }
 }

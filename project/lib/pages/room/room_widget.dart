@@ -43,8 +43,7 @@ class _RoomWidgetState extends State<RoomWidget> {
   @override
   void initState() {
     super.initState();
-    _model = createModel(context, () => RoomModel());
-    _model.roomResult = widget.roomResult;
+    _model = createModel(context, () => RoomModel(widget.roomResult));
     _model.setOnUpdate(
       updateOnChange: true,
       onUpdate: () {
@@ -200,21 +199,24 @@ class _RoomWidgetState extends State<RoomWidget> {
                                         fit: BoxFit.cover,
                                       ),
                                     ),
-                                    Padding(
-                                      padding: EdgeInsetsDirectional.fromSTEB(
-                                          0.0, 0.0, 8.0, 0.0),
-                                      child: InkWell(
-                                        onTap: () async {
-                                          context.pushNamed('Room_setting');
-                                        },
-                                        child: Image.asset(
-                                          'assets/images/icon_close_32@2x_(1).png',
-                                          width: 32.0,
-                                          height: 32.0,
-                                          fit: BoxFit.cover,
+                                    if (_model.isRoomOwner)
+                                      Padding(
+                                        padding: EdgeInsetsDirectional.fromSTEB(
+                                            0.0, 0.0, 8.0, 0.0),
+                                        child: InkWell(
+                                          onTap: () async {
+                                            context.pushNamed('Room_setting');
+                                          },
+                                          child: Image.asset(
+                                            'assets/images/icon_close_32@2x_(1).png',
+                                            width: 32.0,
+                                            height: 32.0,
+                                            fit: BoxFit.cover,
+                                          ),
                                         ),
-                                      ),
-                                    ),
+                                      )
+                                    else
+                                      Container(),
                                     InkWell(
                                       onTap: () async {
                                         await showModalBottomSheet(
@@ -289,275 +291,14 @@ class _RoomWidgetState extends State<RoomWidget> {
                                         }
                                         // 无人麦位
                                         else {
-                                          return micJoinChannelAwaitWidget(
-                                              index + 1);
+                                          if (_model.isLocked[index] == false) {
+                                            return micJoinChannelAwaitWidget(
+                                                index + 1);
+                                          } else {
+                                            return micLockWidget(index + 1);
+                                          }
                                         }
-                                      })
-                                  // child: GridView(
-                                  //   padding: EdgeInsets.zero,
-                                  //   gridDelegate:
-                                  //       SliverGridDelegateWithFixedCrossAxisCount(
-                                  //     crossAxisCount: 4,
-                                  //     crossAxisSpacing: 15.0,
-                                  //     mainAxisSpacing: 15.0,
-                                  //     childAspectRatio: 1.0,
-                                  //   ),
-                                  //   scrollDirection: Axis.vertical,
-                                  //   children: [
-                                  //     Container(
-                                  //       width: double.infinity,
-                                  //       height: 100.0,
-                                  //       decoration: BoxDecoration(
-                                  //         color: Color(0x00FFFFFF),
-                                  //       ),
-                                  //       child: Column(
-                                  //         mainAxisSize: MainAxisSize.max,
-                                  //         children: [
-                                  //           Container(
-                                  //             width: 60.0,
-                                  //             height: 60.0,
-                                  //             decoration: BoxDecoration(
-                                  //               color: Color(0x19FFFFFF),
-                                  //               shape: BoxShape.circle,
-                                  //             ),
-                                  //             child: Stack(
-                                  //               children: [
-                                  //                 Container(
-                                  //                   width: 100.0,
-                                  //                   height: 100.0,
-                                  //                   decoration: BoxDecoration(
-                                  //                     color: Color(0x00FFFFFF),
-                                  //                   ),
-                                  //                   alignment: AlignmentDirectional(
-                                  //                       0.0, 0.050000000000000044),
-                                  //                   child: Stack(
-                                  //                     alignment:
-                                  //                         AlignmentDirectional(
-                                  //                             0.0, 0.0),
-                                  //                     children: [
-                                  //                       InkWell(
-                                  //                         onTap: () async {
-                                  //                           await showModalBottomSheet(
-                                  //                             isScrollControlled:
-                                  //                                 true,
-                                  //                             backgroundColor:
-                                  //                                 Color(0x80000000),
-                                  //                             enableDrag: false,
-                                  //                             context: context,
-                                  //                             builder: (context) {
-                                  //                               return Padding(
-                                  //                                   padding: MediaQuery.of(
-                                  //                                           context)
-                                  //                                       .viewInsets,
-                                  //                                   child: dialog(
-                                  //                                       context)
-                                  //                                   //RoomLockMicWidget(),
-                                  //                                   );
-                                  //                             },
-                                  //                           ).then((value) =>
-                                  //                               setState(() {}));
-                                  //                         },
-                                  //                         child: Icon(
-                                  //                           Icons.add,
-                                  //                           color:
-                                  //                               FlutterFlowTheme.of(
-                                  //                                       context)
-                                  //                                   .white,
-                                  //                           size: 24.0,
-                                  //                         ),
-                                  //                       ),
-                                  //                       Icon(
-                                  //                         Icons.lock_outlined,
-                                  //                         color:
-                                  //                             FlutterFlowTheme.of(
-                                  //                                     context)
-                                  //                                 .white,
-                                  //                         size: 24.0,
-                                  //                       ),
-                                  //                       InkWell(
-                                  //                         onTap: () async {
-                                  //                           await showModalBottomSheet(
-                                  //                             isScrollControlled:
-                                  //                                 true,
-                                  //                             backgroundColor:
-                                  //                                 Color(0x80000000),
-                                  //                             context: context,
-                                  //                             builder: (context) {
-                                  //                               return Padding(
-                                  //                                 padding: MediaQuery
-                                  //                                         .of(context)
-                                  //                                     .viewInsets,
-                                  //                                 child:
-                                  //                                     RoomTapHeadDetailWidget(),
-                                  //                               );
-                                  //                             },
-                                  //                           ).then((value) =>
-                                  //                               setState(() {}));
-                                  //                         },
-                                  //                         child: ClipRRect(
-                                  //                           borderRadius:
-                                  //                               BorderRadius
-                                  //                                   .circular(50.0),
-                                  //                           child: Image.network(
-                                  //                             'https://picsum.photos/seed/186/600',
-                                  //                             width: 100.0,
-                                  //                             height: 100.0,
-                                  //                             fit: BoxFit.cover,
-                                  //                           ),
-                                  //                         ),
-                                  //                       ),
-                                  //                     ],
-                                  //                   ),
-                                  //                 ),
-                                  //                 Align(
-                                  //                   alignment: AlignmentDirectional(
-                                  //                       0.0, 1.0),
-                                  //                   child: Container(
-                                  //                     width: 28.0,
-                                  //                     height: 12.0,
-                                  //                     decoration: BoxDecoration(
-                                  //                       color: FlutterFlowTheme.of(
-                                  //                               context)
-                                  //                           .pecialColor,
-                                  //                       borderRadius:
-                                  //                           BorderRadius.circular(
-                                  //                               6.0),
-                                  //                     ),
-                                  //                     alignment:
-                                  //                         AlignmentDirectional(
-                                  //                             0.0, 0.0),
-                                  //                     child: Align(
-                                  //                       alignment:
-                                  //                           AlignmentDirectional(
-                                  //                               0.0, 0.0),
-                                  //                       child: AutoSizeText(
-                                  //                         '8314',
-                                  //                         textAlign:
-                                  //                             TextAlign.center,
-                                  //                         style:
-                                  //                             FlutterFlowTheme.of(
-                                  //                                     context)
-                                  //                                 .bodyMedium
-                                  //                                 .override(
-                                  //                                   fontFamily:
-                                  //                                       'Poppins',
-                                  //                                   fontSize: 3.0,
-                                  //                                   fontWeight:
-                                  //                                       FontWeight
-                                  //                                           .normal,
-                                  //                                   lineHeight: 1.0,
-                                  //                                 ),
-                                  //                       ),
-                                  //                     ),
-                                  //                   ),
-                                  //                 ),
-                                  //               ],
-                                  //             ),
-                                  //           ),
-                                  //           Text(
-                                  //             'Angel Blair',
-                                  //             style: FlutterFlowTheme.of(context)
-                                  //                 .bodyMedium
-                                  //                 .override(
-                                  //                   fontFamily: 'Poppins',
-                                  //                   color: Color(0xCBFFFFFF),
-                                  //                   fontSize: 10.0,
-                                  //                   lineHeight: 1.0,
-                                  //                 ),
-                                  //           ),
-                                  //         ],
-                                  //       ),
-                                  //     ),
-                                  //     Container(
-                                  //       width: double.infinity,
-                                  //       height: 100.0,
-                                  //       decoration: BoxDecoration(
-                                  //         color: Color(0x00FFFFFF),
-                                  //       ),
-                                  //       child: Column(
-                                  //         mainAxisSize: MainAxisSize.max,
-                                  //         children: [
-                                  //           Container(
-                                  //             width: 60.0,
-                                  //             height: 60.0,
-                                  //             decoration: BoxDecoration(
-                                  //               color: Color(0x19FFFFFF),
-                                  //               shape: BoxShape.circle,
-                                  //             ),
-                                  //             child: Stack(
-                                  //               children: [
-                                  //                 Container(
-                                  //                   width: 100.0,
-                                  //                   height: 100.0,
-                                  //                   decoration: BoxDecoration(
-                                  //                     color: Color(0x00FFFFFF),
-                                  //                   ),
-                                  //                   alignment: AlignmentDirectional(
-                                  //                       0.0, 0.050000000000000044),
-                                  //                   child: Stack(
-                                  //                     alignment:
-                                  //                         AlignmentDirectional(
-                                  //                             0.0, 0.0),
-                                  //                     children: [
-                                  //                       InkWell(
-                                  //                         onTap: () async {
-                                  //                           await showModalBottomSheet(
-                                  //                             isScrollControlled:
-                                  //                                 true,
-                                  //                             backgroundColor:
-                                  //                                 Color(0x7F000000),
-                                  //                             context: context,
-                                  //                             builder: (context) {
-                                  //                               return Padding(
-                                  //                                   padding: MediaQuery.of(
-                                  //                                           context)
-                                  //                                       .viewInsets,
-                                  //                                   child: dialog(
-                                  //                                       context)
-                                  //                                   //RoomLockMicWidget(),
-                                  //                                   );
-                                  //                             },
-                                  //                           ).then((value) =>
-                                  //                               setState(() {}));
-                                  //                         },
-                                  //                         child: Icon(
-                                  //                           Icons.add,
-                                  //                           color:
-                                  //                               FlutterFlowTheme.of(
-                                  //                                       context)
-                                  //                                   .white,
-                                  //                           size: 24.0,
-                                  //                         ),
-                                  //                       ),
-                                  //                     ],
-                                  //                   ),
-                                  //                 ),
-                                  //               ],
-                                  //             ),
-                                  //           ),
-                                  //           Text(
-                                  //             'Angel Blair',
-                                  //             style: FlutterFlowTheme.of(context)
-                                  //                 .bodyMedium
-                                  //                 .override(
-                                  //                   fontFamily: 'Poppins',
-                                  //                   color: Color(0xCBFFFFFF),
-                                  //                   fontSize: 10.0,
-                                  //                   lineHeight: 1.0,
-                                  //                 ),
-                                  //           ),
-                                  //         ],
-                                  //       ),
-                                  //     ),
-                                  //     micWidget(),
-                                  //     micWidget(),
-                                  //     micWidget(),
-                                  //     micWidget(),
-                                  //     micWidget(),
-                                  //     micWidget(),
-                                  //   ],
-                                  // ),
-                                  ),
+                                      })),
                             ),
                             Container(
                               width: double.infinity,
@@ -608,7 +349,8 @@ class _RoomWidgetState extends State<RoomWidget> {
                                         ),
                                       ),
                                     );
-                                  } else if (_model.isNewMember == true &&
+                                  } else if (
+                                      // _model.isNewMember == true &&
                                       index == 1) {
                                     return Padding(
                                       padding: EdgeInsetsDirectional.fromSTEB(
@@ -654,7 +396,8 @@ class _RoomWidgetState extends State<RoomWidget> {
                                                     .fromSTEB(
                                                         0.0, 0.0, 4.0, 0.0),
                                                 child: Text(
-                                                  _model.memberList.last!,
+                                                  _model.user!.nickname ??
+                                                      _model.memberList.last!,
                                                   style: FlutterFlowTheme.of(
                                                           context)
                                                       .bodyMedium
@@ -835,37 +578,61 @@ class _RoomWidgetState extends State<RoomWidget> {
                                 Row(
                                   mainAxisSize: MainAxisSize.max,
                                   children: [
-                                    Image.asset(
-                                      'assets/images/icon_offmic_32@2x_(1).png',
-                                      width: 32.0,
-                                      height: 32.0,
-                                      fit: BoxFit.cover,
-                                    ),
-                                    Image.asset(
-                                      'assets/images/icon_offmic_32@2x_(1).png',
-                                      width: 32.0,
-                                      height: 32.0,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ],
-                                ),
-                                Row(
-                                  mainAxisSize: MainAxisSize.max,
-                                  children: [
-                                    Image.asset(
-                                      'assets/images/icon_offmic_32@2x_(2)_(1).png',
-                                      width: 32.0,
-                                      height: 32.0,
-                                      fit: BoxFit.cover,
-                                    ),
-                                    Image.asset(
-                                      'assets/images/icon_offmic_32@2x_(2)_(1).png',
-                                      width: 32.0,
-                                      height: 32.0,
-                                      fit: BoxFit.cover,
+                                    _model.localUserJoined
+                                        ? GestureDetector(
+                                            onTap: () {
+                                              _model.closeOrOpenMike();
+                                            },
+                                            child: Image.asset(
+                                              'assets/images/icon_offmic_32@2x_(2)_(1).png',
+                                              width: 32.0,
+                                              height: 32.0,
+                                              fit: BoxFit.cover,
+                                            ),
+                                          )
+                                        : Container(),
+                                    GestureDetector(
+                                      onTap: () {
+                                        _model.mikeMute();
+                                      },
+                                      child: Image.asset(
+                                        'assets/images/icon_offmic_32@2x_(1).png',
+                                        width: 32.0,
+                                        height: 32.0,
+                                        fit: BoxFit.cover,
+                                      ),
                                     ),
                                   ],
                                 ),
+                                // Row(
+                                //   mainAxisSize: MainAxisSize.max,
+                                //   children: [
+                                //     // 闭麦开麦
+                                //     GestureDetector(
+                                //       onTap: (){
+                                //         //Fluttertoast.showToast(msg: '点击了');
+                                //       },
+                                //       child: Image.asset(
+                                //         'assets/images/icon_offmic_32@2x_(2)_(1).png',
+                                //         width: 32.0,
+                                //         height: 32.0,
+                                //         fit: BoxFit.cover,
+                                //       ),
+                                //     ),
+                                //     // 静音
+                                //     GestureDetector(
+                                //       onTap: (){
+                                //
+                                //       },
+                                //       child: Image.asset(
+                                //         'assets/images/icon_offmic_32@2x_(2)_(1).png',
+                                //         width: 32.0,
+                                //         height: 32.0,
+                                //         fit: BoxFit.cover,
+                                //       ),
+                                //     ),
+                                //   ],
+                                // ),
                               ],
                             ),
                             InkWell(
@@ -904,7 +671,8 @@ class _RoomWidgetState extends State<RoomWidget> {
                                         return Padding(
                                           padding:
                                               MediaQuery.of(context).viewInsets,
-                                          child: FunctionsWidget(),
+                                          child:
+                                              FunctionsWidget(mModel: _model),
                                         );
                                       },
                                     ).then((value) => setState(() {}));
@@ -1360,9 +1128,6 @@ class _RoomWidgetState extends State<RoomWidget> {
                                   } else {
                                     _model.userOnMike(context, index);
                                   }
-                                  //_model.isMicBeingOccupied[index] = true;
-                                  //_model.initAgora(context,index);
-                                  //_model.userDownMike();
                                 }
                               },
                               child: Container(
@@ -1409,32 +1174,38 @@ class _RoomWidgetState extends State<RoomWidget> {
                           ),
                           Expanded(
                             flex: 1,
-                            child: Container(
-                              width: double.infinity,
-                              height: double.infinity,
-                              decoration: BoxDecoration(
-                                color: Color(0x00FFFFFF),
-                              ),
-                              child: Padding(
-                                padding: EdgeInsetsDirectional.fromSTEB(
-                                    30.0, 0.0, 30.0, 0.0),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.max,
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceAround,
-                                  children: [
-                                    AutoSizeText(
-                                      'Lock the Mic',
-                                      style: FlutterFlowTheme.of(context)
-                                          .bodyMedium
-                                          .override(
-                                            fontFamily: 'Poppins',
-                                            color: FlutterFlowTheme.of(context)
-                                                .white,
-                                            fontSize: 14.0,
-                                          ),
-                                    ),
-                                  ],
+                            child: GestureDetector(
+                              onTap: () {
+                                _model.lockMike(index);
+                              },
+                              child: Container(
+                                width: double.infinity,
+                                height: double.infinity,
+                                decoration: BoxDecoration(
+                                  color: Color(0x00FFFFFF),
+                                ),
+                                child: Padding(
+                                  padding: EdgeInsetsDirectional.fromSTEB(
+                                      30.0, 0.0, 30.0, 0.0),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.max,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceAround,
+                                    children: [
+                                      AutoSizeText(
+                                        'Lock the Mic',
+                                        style: FlutterFlowTheme.of(context)
+                                            .bodyMedium
+                                            .override(
+                                              fontFamily: 'Poppins',
+                                              color:
+                                                  FlutterFlowTheme.of(context)
+                                                      .white,
+                                              fontSize: 14.0,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
@@ -1445,32 +1216,38 @@ class _RoomWidgetState extends State<RoomWidget> {
                           ),
                           Expanded(
                             flex: 1,
-                            child: Container(
-                              width: double.infinity,
-                              height: double.infinity,
-                              decoration: BoxDecoration(
-                                color: Color(0x00FFFFFF),
-                              ),
-                              child: Padding(
-                                padding: EdgeInsetsDirectional.fromSTEB(
-                                    30.0, 0.0, 30.0, 0.0),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.max,
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceAround,
-                                  children: [
-                                    AutoSizeText(
-                                      'Lock sll Mic',
-                                      style: FlutterFlowTheme.of(context)
-                                          .bodyMedium
-                                          .override(
-                                            fontFamily: 'Poppins',
-                                            color: FlutterFlowTheme.of(context)
-                                                .white,
-                                            fontSize: 14.0,
-                                          ),
-                                    ),
-                                  ],
+                            child: GestureDetector(
+                              onTap: () {
+                                _model.batchLockMike();
+                              },
+                              child: Container(
+                                width: double.infinity,
+                                height: double.infinity,
+                                decoration: BoxDecoration(
+                                  color: Color(0x00FFFFFF),
+                                ),
+                                child: Padding(
+                                  padding: EdgeInsetsDirectional.fromSTEB(
+                                      30.0, 0.0, 30.0, 0.0),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.max,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceAround,
+                                    children: [
+                                      AutoSizeText(
+                                        'Lock all Mic',
+                                        style: FlutterFlowTheme.of(context)
+                                            .bodyMedium
+                                            .override(
+                                              fontFamily: 'Poppins',
+                                              color:
+                                                  FlutterFlowTheme.of(context)
+                                                      .white,
+                                              fontSize: 14.0,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
@@ -1554,7 +1331,233 @@ class _RoomWidgetState extends State<RoomWidget> {
     );
   }
 
-  sayHiWidget(int index, VoiceMikeDetailVoList? user) {
+  // 解锁麦位弹窗
+  unLockDialog(int index) {
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      decoration: BoxDecoration(
+        color: Color(0x00FFFFFF),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.max,
+        children: [
+          Expanded(
+            flex: 260,
+            child: Container(
+              width: 100.0,
+              height: 100.0,
+              decoration: BoxDecoration(
+                color: Color(0x00FFFFFF),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 224,
+            child: Container(
+              width: double.infinity,
+              height: 100.0,
+              decoration: BoxDecoration(
+                color: Color(0x00FFFFFF),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  Expanded(
+                    flex: 45,
+                    child: Container(
+                      width: 100.0,
+                      height: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Color(0x00FFFFFF),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 176,
+                    child: Container(
+                      width: 100.0,
+                      height: double.infinity,
+                      decoration: BoxDecoration(
+                        color: FlutterFlowTheme.of(context).thisBackground,
+                        borderRadius: BorderRadius.circular(16.0),
+                      ),
+                      alignment:
+                          AlignmentDirectional(0.0, 0.050000000000000044),
+                      child: Padding(
+                        padding: EdgeInsetsDirectional.fromSTEB(
+                            0.0, 16.0, 0.0, 16.0),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.max,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              flex: 1,
+                              child: GestureDetector(
+                                onTap: () {
+                                  _model.unLockMike(index);
+                                },
+                                child: Container(
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                  decoration: BoxDecoration(
+                                    color: Color(0x00FFFFFF),
+                                  ),
+                                  alignment: AlignmentDirectional(0.0, 0.0),
+                                  child: Padding(
+                                    padding: EdgeInsetsDirectional.fromSTEB(
+                                        30.0, 0.0, 30.0, 0.0),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.max,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceAround,
+                                      children: [
+                                        Text(
+                                          'Uniock',
+                                          style: FlutterFlowTheme.of(context)
+                                              .bodyMedium
+                                              .override(
+                                                fontFamily: 'Poppins',
+                                                color:
+                                                    FlutterFlowTheme.of(context)
+                                                        .white,
+                                                fontSize: 14.0,
+                                              ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Divider(
+                              thickness: 1.0,
+                              color: FlutterFlowTheme.of(context).dividercolor,
+                            ),
+                            Expanded(
+                              // 一键解锁
+                              flex: 1,
+                              child: GestureDetector(
+                                onTap: () {
+                                  _model.batchUnlockMike();
+                                },
+                                child: Container(
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                  decoration: BoxDecoration(
+                                    color: Color(0x00FFFFFF),
+                                  ),
+                                  alignment: AlignmentDirectional(0.0, 0.0),
+                                  child: Padding(
+                                    padding: EdgeInsetsDirectional.fromSTEB(
+                                        30.0, 0.0, 30.0, 0.0),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.max,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceAround,
+                                      children: [
+                                        Text(
+                                          'Unlock all',
+                                          textAlign: TextAlign.center,
+                                          style: FlutterFlowTheme.of(context)
+                                              .bodyMedium
+                                              .override(
+                                                fontFamily: 'Poppins',
+                                                color:
+                                                    FlutterFlowTheme.of(context)
+                                                        .white,
+                                                fontSize: 14.0,
+                                              ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Divider(
+                              thickness: 1.0,
+                              color: FlutterFlowTheme.of(context).dividercolor,
+                            ),
+                            Expanded(
+                              flex: 1,
+                              child: InkWell(
+                                onTap: () async {
+                                  Navigator.pop(context);
+                                },
+                                child: Container(
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                  decoration: BoxDecoration(
+                                    color: Color(0x00FFFFFF),
+                                  ),
+                                  alignment: AlignmentDirectional(
+                                      0.050000000000000044, 0.0),
+                                  child: Padding(
+                                    padding: EdgeInsetsDirectional.fromSTEB(
+                                        30.0, 0.0, 30.0, 0.0),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.max,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceAround,
+                                      children: [
+                                        Text(
+                                          'Cancel',
+                                          style: FlutterFlowTheme.of(context)
+                                              .bodyMedium
+                                              .override(
+                                                fontFamily: 'Poppins',
+                                                color:
+                                                    FlutterFlowTheme.of(context)
+                                                        .pecialColor,
+                                                fontSize: 14.0,
+                                              ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Divider(
+                              thickness: 1.0,
+                              color: FlutterFlowTheme.of(context).dividercolor,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 45,
+                    child: Container(
+                      width: 100.0,
+                      height: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Color(0x00FFFFFF),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 376,
+            child: Container(
+              width: 100.0,
+              height: 100.0,
+              decoration: BoxDecoration(
+                color: Color(0x00FFFFFF),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  sayHiWidget(int index, {VoiceMikeDetailVoList? voiceUser, User? user}) {
     return Stack(
       children: [
         InkWell(
@@ -1621,7 +1624,9 @@ class _RoomWidgetState extends State<RoomWidget> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                user!.nickname ?? 'Jay Wells',
+                                voiceUser?.nickname ??
+                                    user?.nickname ??
+                                    'Jay Wells',
                                 style: FlutterFlowTheme.of(context)
                                     .bodyMedium
                                     .override(
@@ -1659,7 +1664,7 @@ class _RoomWidgetState extends State<RoomWidget> {
                           padding: EdgeInsetsDirectional.fromSTEB(
                               0.0, 6.0, 0.0, 6.0),
                           child: Text(
-                            'ID: ${user.userId.toString()}',
+                            'ID: ${voiceUser?.userId.toString() ?? user?.userId.toString()}',
                             style: FlutterFlowTheme.of(context)
                                 .bodyMedium
                                 .override(
@@ -1788,24 +1793,33 @@ class _RoomWidgetState extends State<RoomWidget> {
                                   fit: BoxFit.cover,
                                 ),
                               ),
-                              Container(
-                                width: 32.0,
-                                height: 32.0,
-                                child: Stack(
-                                  children: [
-                                    Image.asset(
-                                      'assets/images/icon_offmic_32@2x_(2)_(1).png',
-                                      width: 32.0,
-                                      height: 32.0,
-                                      fit: BoxFit.cover,
-                                    ),
-                                    Image.asset(
-                                      'assets/images/icon_offmic_32_6@2x.png',
-                                      width: 32.0,
-                                      height: 32.0,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ],
+                              GestureDetector(
+                                onTap: () {
+                                  if (voiceUser != null) {
+                                    //if(voiceUser.lockFlag)
+                                    // _model.markChatroomMemberMuted(
+                                    //     voiceUser.yxAccid!);
+                                  }
+                                },
+                                child: Container(
+                                  width: 32.0,
+                                  height: 32.0,
+                                  child: Stack(
+                                    children: [
+                                      Image.asset(
+                                        'assets/images/icon_offmic_32@2x_(2)_(1).png',
+                                        width: 32.0,
+                                        height: 32.0,
+                                        fit: BoxFit.cover,
+                                      ),
+                                      Image.asset(
+                                        'assets/images/icon_offmic_32_6@2x.png',
+                                        width: 32.0,
+                                        height: 32.0,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                               GestureDetector(
@@ -1851,11 +1865,20 @@ class _RoomWidgetState extends State<RoomWidget> {
                                   fit: BoxFit.cover,
                                 ),
                               ),
-                              Image.asset(
-                                'assets/images/icon_offmic_32_4@2x_(2).png',
-                                width: 32.0,
-                                height: 32.0,
-                                fit: BoxFit.cover,
+                              GestureDetector(
+                                // 踢人
+                                onTap: () {
+                                  if (voiceUser != null) {
+                                    // _model.kickChatroomMember(
+                                    //     voiceUser.yxAccid!);
+                                  }
+                                },
+                                child: Image.asset(
+                                  'assets/images/icon_offmic_32_4@2x_(2).png',
+                                  width: 32.0,
+                                  height: 32.0,
+                                  fit: BoxFit.cover,
+                                ),
                               ),
                             ],
                           ),
@@ -1889,12 +1912,14 @@ class _RoomWidgetState extends State<RoomWidget> {
                               ),
                               InkWell(
                                 onTap: () {
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) =>
-                                              MessagePrivateWidget(
-                                                  voiceUser: user)));
+                                  if (voiceUser != null) {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                MessagePrivateWidget(
+                                                    voiceUser: voiceUser)));
+                                  }
                                   //context.push('MessagePrivate');
                                 },
                                 child: Container(
@@ -1945,7 +1970,7 @@ class _RoomWidgetState extends State<RoomWidget> {
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(50.0),
                       child: Image.network(
-                        user.icon ?? 'https://picsum.photos/seed/654/600',
+                        user?.icon ?? 'https://picsum.photos/seed/654/600',
                         width: 84.0,
                         height: 84.0,
                         fit: BoxFit.cover,
@@ -2037,7 +2062,9 @@ class _RoomWidgetState extends State<RoomWidget> {
                             builder: (context) {
                               return Padding(
                                 padding: MediaQuery.of(context).viewInsets,
-                                child: sayHiWidget(index, otherUser),
+                                child: otherUser == null
+                                    ? sayHiWidget(index, user: user)
+                                    : sayHiWidget(index, voiceUser: otherUser),
                               );
                             },
                           ).then((value) => setState(() {}));
@@ -2169,7 +2196,7 @@ class _RoomWidgetState extends State<RoomWidget> {
   }
 
   // 被锁麦位
-  micLockWidget() {
+  micLockWidget(int index) {
     return Container(
       width: double.infinity,
       height: 100.0,
@@ -2207,7 +2234,7 @@ class _RoomWidgetState extends State<RoomWidget> {
                             builder: (context) {
                               return Padding(
                                 padding: MediaQuery.of(context).viewInsets,
-                                child: RoomUnlockMicWidget(),
+                                child: unLockDialog(index),
                               );
                             },
                           ).then((value) => setState(() {}));

@@ -28,6 +28,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 class RoomModel extends FlutterFlowModel {
+  RoomModel(RoomResult? roomResult) {
+    this.roomResult = roomResult;
+  }
+
   /// Initialization and disposal methods.
   Map<String, dynamic>? params;
   User? user;
@@ -41,6 +45,10 @@ class RoomModel extends FlutterFlowModel {
   int? micIndex;
   // 是否有新用户进入房间
   bool isNewMember = false;
+  // 是否为房主
+  bool isRoomOwner = false;
+  // 是否被禁言
+  bool isBeMuted = false;
   // 聊天室成员列表
   List<NIMChatroomMember> chatroomMemberList = [];
   // 新加入聊天室成员消息列表
@@ -69,6 +77,10 @@ class RoomModel extends FlutterFlowModel {
   bool localUserInAgora = false;
   // 是否收到了礼物，有则显示侧边礼物栏
   bool isGift = false;
+  // 闭麦或开麦
+  int? mikeOpenOrClose = 2;
+  // 音量
+  int? vol = 0;
 
   Result? apiResult;
 
@@ -83,9 +95,26 @@ class RoomModel extends FlutterFlowModel {
     false,
   ];
 
+  List isLocked = [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+  ];
+
   void initState(BuildContext context) {
     // 初始化声网SDK
     initAgora();
+    user = SpUtil.getObj<User>(
+        Config.userInfo, (v) => User.fromJson(v as Map<String, dynamic>));
+    print('homeownerId: ${roomResult?.homeownerId},userId: ${user?.userId}');
+    if (roomResult?.homeownerId == user?.userId) {
+      isRoomOwner = true;
+    }
   }
 
   void dispose() {
@@ -96,6 +125,9 @@ class RoomModel extends FlutterFlowModel {
       userDownMike(micIndex!);
     }
     print('dispose');
+    // 取消监听
+    // _eventNotifySubscription?.cancel();
+    // _messageReceivedSubscription?.cancel();
     levelAgoraRoom();
   }
 
@@ -116,15 +148,13 @@ class RoomModel extends FlutterFlowModel {
 
   // 调用服务器api
   joinRoom() async {
-    user = SpUtil.getObj<User>(
-        Config.userInfo, (v) => User.fromJson(v as Map<String, dynamic>));
     HttpUtils.post(ApisRoom.joinRoom, {"id": roomResult!.id, "password": ''},
         success: (data) async {
       apiResult = Result.fromJson(data);
       Fluttertoast.showToast(msg: "进入房间成功!");
-      // print('进入房间成功');
-      // print(apiResult);
-      // print("云信yxRoomId" + apiResult!.yxRoomId!);
+      print('进入房间成功');
+      print(apiResult);
+      print("云信yxRoomId" + apiResult!.yxRoomId!);
       yxRoomId = apiResult!.yxRoomId.toString();
       // print("声网Token" + apiResult!.agoraToken.toString());
       voiceMikeDetailVoList = apiResult?.voiceMikeDetailVoList;
@@ -184,6 +214,10 @@ class RoomModel extends FlutterFlowModel {
 
   void _onEventNotified(NIMChatroomEvent event) {
     print('直播间状态变化$event');
+    if (event is NIMChatroomKickOutEvent) {
+      /// 离开事件通知
+      Fluttertoast.showToast(msg: '您已被踢出${event.reason}');
+    }
   }
 
   // 获取历史消息
@@ -208,8 +242,6 @@ class RoomModel extends FlutterFlowModel {
   void _onMessageReceived(List<NIMChatroomMessage> event) {
     for (NIMChatroomMessage item in event) {
       print('收到消息${item.toMap()}');
-      NIMChatroomMessage mItem = item;
-
       if (item.messageAttachment is NIMChatroomMemberInAttachment ||
           item.messageAttachment is NIMChatroomNotificationAttachment) {
         _refreshRoomInfo();
@@ -218,7 +250,15 @@ class RoomModel extends FlutterFlowModel {
           (item.content != null || item.content?.isEmpty != true)) {
         _addMessage(item);
       }
+
       // 麦位刷新
+      mikeIndexRefresh(item);
+    }
+  }
+
+  // 麦位动态刷新
+  mikeIndexRefresh(NIMChatroomMessage mItem) {
+    if (mItem.remoteExtension != null) {
       for (int i = 0; i < mItem.remoteExtension!['data'].length; i++) {
         // 已有人的麦位
         if (mItem.remoteExtension!['data'][i].containsKey('userId') &&
@@ -226,6 +266,7 @@ class RoomModel extends FlutterFlowModel {
           final mikeIndex = mItem.remoteExtension!['data'][i]['mikeIndex'];
           voiceMikeDetailVoList![mikeIndex - 1] = VoiceMikeDetailVoList(
               mikeIndex: mikeIndex,
+              lockFlag: mItem.remoteExtension!['data'][i]['lockFlag'],
               userId: mItem.remoteExtension!['data'][i]['userId'],
               icon: mItem.remoteExtension!['data'][i]['icon'],
               nickname: mItem.remoteExtension!['data'][i]['nickname'],
@@ -239,6 +280,12 @@ class RoomModel extends FlutterFlowModel {
           if (mItem.remoteExtension!['data'][i]['mikeIndex'] != -1) {
             final mikeIndex = mItem.remoteExtension!['data'][i]['mikeIndex'];
             isMicBeingOccupied[mikeIndex! - 1] = false;
+            int lockFlag = mItem.remoteExtension!['data'][i]['lockFlag'];
+            if (lockFlag == 0) {
+              isLocked[mikeIndex! - 1] = false;
+            } else if (lockFlag == 1) {
+              isLocked[mikeIndex - 1] = true;
+            }
           }
         }
         onUpdate();
@@ -288,7 +335,6 @@ class RoomModel extends FlutterFlowModel {
   }
 
   Future _refreshRoomInfo() {
-    chatroomMemberList = [];
     return NimCore.instance.chatroomService
         .fetchChatroomInfo(yxRoomId!)
         .then((value) {
@@ -303,6 +349,7 @@ class RoomModel extends FlutterFlowModel {
               limit: 3)
           .then((value) {
         chatroomMemberList = value.data ?? [];
+        print('直播间成员人数${chatroomMemberList.length}');
         for (NIMChatroomMember item in chatroomMemberList) {
           print('直播间成员${item.nickname}');
           _addSystemMessage(item.nickname);
@@ -330,6 +377,7 @@ class RoomModel extends FlutterFlowModel {
       isNewMember = true;
       memberList.add(nickName);
     }
+    onUpdate();
   }
 
   // 滑动至底部
@@ -479,10 +527,18 @@ class RoomModel extends FlutterFlowModel {
     for (int i = 0; i < voiceMikeDetailVoList!.length; i++) {
       print(voiceMikeDetailVoList![i].toJson());
       int j = voiceMikeDetailVoList![i].mikeIndex!;
+      int lockFlag = voiceMikeDetailVoList![i].lockFlag!;
       // 除房主外
       if (j != -1 && voiceMikeDetailVoList![i].userId != null) {
-        isMicBeingOccupied[voiceMikeDetailVoList![i].mikeIndex! - 1] = true;
+        isMicBeingOccupied[j - 1] = true;
         onUpdate();
+      }
+      if (j != -1) {
+        if (lockFlag == 0) {
+          isLocked[j - 1] = false;
+        } else if (lockFlag == 1) {
+          isLocked[j - 1] = true;
+        }
       }
     }
     onUpdate();
@@ -547,10 +603,125 @@ class RoomModel extends FlutterFlowModel {
     });
   }
 
+  // 踢出用户
+  kickChatroomMember(String account) {
+    NimCore.instance.chatroomService
+        .kickChatroomMember(
+      NIMChatroomMemberOptions(
+        roomId: roomResult!.id.toString(),
+        account: account,
+      ),
+    )
+        .then((value) {
+      print(
+          'ChatroomService##kickChatroomMember:  ${value.code} ${value.errorDetails}');
+    });
+  }
+
+  // 禁言用户
+  markChatroomMemberMuted(String account,bool flag) {
+
+    NimCore.instance.chatroomService
+        .markChatroomMemberMuted(
+      isAdd: flag,
+      options: NIMChatroomMemberOptions(
+        roomId: roomResult!.id.toString(),
+        account: account,
+      ),
+    )
+        .then((value) {
+      print(
+          'ChatroomService##markChatroomMemberMuted:  ${value.code} ${value.errorDetails}');
+    });
+  }
+
+  // 闭麦/开麦
+  // 2闭麦，1开麦
+  closeOrOpenMike() async {
+    await changeRoleType(mikeOpenOrClose!, micIndex!).then((value) {
+      if (mikeOpenOrClose == 2) {
+        Fluttertoast.showToast(msg: '闭麦成功');
+        mikeOpenOrClose = 1;
+      } else {
+        Fluttertoast.showToast(msg: '开麦成功');
+        mikeOpenOrClose = 2;
+      }
+      onUpdate();
+    });
+  }
+
+  // 静音
+  mikeMute() async {
+    await _engine.adjustPlaybackSignalVolume(vol!).then((value) {
+      if (vol != 0) {
+        vol = 0;
+      } else {
+        vol = 50;
+      }
+    });
+  }
+
   // 锁定麦位
-  lockMike() {
-    HttpUtils.post(ApisRoom.lockMike,
-        {"mikeIndex": micIndex, "roomId": roomResult!.id.toString()},
+  // 传房间id
+  lockMike(int index) {
+    HttpUtils.post(ApisRoom.lockMike, {
+      "mikeIndex": index,
+      "roomId": roomResult!.id.toString()
+    }, success: (data) {
+      print('锁定麦位data: $data');
+      isLocked[index - 1] = true;
+      onUpdate();
+    }, fail: (data) {});
+  }
+
+  // 解锁麦位
+  unLockMike(int index) {
+    HttpUtils.post(ApisRoom.unlockMike, {
+      "mikeIndex": index,
+      "roomId": roomResult!.id.toString()
+    }, success: (data) {
+      print('解锁麦位data: $data');
+      isLocked[index - 1] = false;
+      onUpdate();
+    }, fail: (data) {
+      print('解锁麦位失败data: $data');
+    });
+  }
+
+  // 一键锁麦
+  batchLockMike() {
+    HttpUtils.post(
+        ApisRoom.batchLockMike, {"searchValue": roomResult!.id.toString()},
+        success: (data) {
+      for (int i = 0; i < isLocked.length; i++) {
+        isLocked[i] = true;
+      }
+      onUpdate();
+    }, fail: (data) {});
+  }
+
+  // 一键解锁
+  batchUnlockMike() {
+    HttpUtils.post(
+        ApisRoom.batchUnlockMike, {"searchValue": roomResult!.id.toString()},
+        success: (data) {
+      for (int i = 0; i < isLocked.length; i++) {
+        isLocked[i] = false;
+      }
+      onUpdate();
+    }, fail: (data) {});
+  }
+
+  // 清除当前IM聊天的所有历史消息
+  clearRoomMessage() {
+    messageList.clear();
+    onUpdate();
+  }
+
+  // 清除房间魅力值
+  clearUserRoomCharisma(String userId) {
+    HttpUtils.post(ApisRoom.clearUserRoomCharisma,
+        {"roomId": roomResult!.id.toString(), "userId": userId},
         success: (data) {}, fail: (data) {});
   }
 }

@@ -19,13 +19,15 @@ class YxService {
   initYx(User user) async {
     /// 注册登录状态监听
     subscriptions
-        .add(NimCore.instance.authService.authStatus.listen((event) {}));
+        .add(NimCore.instance.authService.authStatus.listen((event) {
+
+    }));
 
     /// 接收方注册消息接收事件流（onMessage），监听消息接收。
     subscriptions.add(NimCore.instance.messageService.onMessage
         .listen((List<NIMMessage> list) {
       Fluttertoast.showToast(
-          msg: list.first.toString(), toastLength: Toast.LENGTH_LONG);
+          msg: list.first.content.toString(), toastLength: Toast.LENGTH_LONG);
     }));
 
     /// 多媒体状态监听

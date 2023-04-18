@@ -1,3 +1,4 @@
+import 'package:image_picker/image_picker.dart';
 import 'package:project/apis/login.dart';
 import 'package:project/common/Config.dart';
 import 'package:project/common/http_utils.dart';
@@ -57,6 +58,15 @@ class RegistrationModel extends FlutterFlowModel {
       print(data);
       //context.pushNamed('Page01');
     });
+  }
+
+  // 保存用户头像
+  saveAvatar()async {
+    final XFile? _image =
+    await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (_image != null) {
+
+    }
   }
 
   /// Additional helper methods are added here.
